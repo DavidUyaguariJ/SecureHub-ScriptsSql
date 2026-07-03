@@ -28,3 +28,28 @@ ALTER SCHEMA public OWNER TO devuser;
 --
 -- setx KEYCLOAK_ADMIN admin
 -- setx KEYCLOAK_ADMIN_PASSWORD admin
+
+
+docker exec -i postgres15 psql -U postgres -d securehub_des <<EOF
+-- Dar permisos al schema data_protection
+GRANT USAGE ON SCHEMA data_protection TO devuser;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA data_protection TO devuser;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA data_protection TO devuser;
+
+GRANT USAGE ON SCHEMA data_protection TO preuser;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA data_protection TO preuser;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA data_protection TO preuser;
+
+GRANT USAGE ON SCHEMA data_protection TO devuser;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA data_protection TO produser;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA data_protection TO produser;
+
+-- Para tablas futuras que se creen (migraciones)
+ALTER DEFAULT PRIVILEGES IN SCHEMA data_protection 
+  GRANT ALL PRIVILEGES ON TABLES TO devuser;
+ALTER DEFAULT PRIVILEGES IN SCHEMA data_protection 
+  GRANT ALL PRIVILEGES ON SEQUENCES TO devuser;
+
+-- Verificar
+\dn+ data_protection
+EOF

@@ -12,89 +12,89 @@ CREATE SCHEMA IF NOT EXISTS data_protection;
 -- =============================================
 -- TABLE: Subjects
 -- =============================================
-CREATE TABLE IF NOT EXISTS data_protection.Subjects
+CREATE TABLE IF NOT EXISTS data_protection.subjects
 (
-    Id UUID NOT NULL DEFAULT gen_random_uuid(),
-    Identification VARCHAR(20) NOT NULL,
-    FullName VARCHAR(255) NOT NULL,
-    Phone VARCHAR(20),
-    Address TEXT,
-    Email VARCHAR(150) NOT NULL,
-    SubjectType VARCHAR(20),
-    ContactPerson VARCHAR(255),
-    CreatedAt TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT PK_Subjects PRIMARY KEY (Id),
-    CONSTRAINT UQ_Subjects_Identification UNIQUE (Identification),
-    CONSTRAINT UQ_Subjects_Email UNIQUE (Email),
-    CONSTRAINT CK_Subjects_Type CHECK (SubjectType IN ('PERSONA', 'EMPRESA'))
+    id              UUID        NOT NULL DEFAULT gen_random_uuid(),
+    identification  TEXT        NOT NULL,
+    full_name       TEXT        NOT NULL,
+    phone           TEXT,
+    address         TEXT,
+    email           TEXT        NOT NULL,
+    subject_type    VARCHAR(20),
+    contact_person  TEXT,
+    is_deleted      BOOLEAN     NOT NULL DEFAULT FALSE,
+    deleted_at      TIMESTAMPTZ,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_subjects      PRIMARY KEY (id),
+    CONSTRAINT ck_subjects_type CHECK (subject_type IN ('PERSONA', 'EMPRESA'))
 );
 
 -- =============================================
 -- TABLE: Devices
 -- =============================================
-CREATE TABLE IF NOT EXISTS data_protection.Devices
+CREATE TABLE IF NOT EXISTS data_protection.devices
 (
-    Id UUID NOT NULL DEFAULT gen_random_uuid(),
-    SubjectId UUID NOT NULL,
-    DeviceType VARCHAR(50) NOT NULL,
-    Brand VARCHAR(50),
-    Model VARCHAR(50),
-    SerialNumber VARCHAR(100),
-    CreatedAt TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT PK_Devices PRIMARY KEY (Id),
-    CONSTRAINT UQ_Devices_Serial UNIQUE (SerialNumber),
-    CONSTRAINT FK_Devices_Subjects FOREIGN KEY (SubjectId)
-        REFERENCES data_protection.Subjects(Id)
-        ON DELETE CASCADE
+    id            UUID        NOT NULL DEFAULT gen_random_uuid(),
+    subject_id    UUID        NOT NULL,
+    device_type   VARCHAR(50) NOT NULL,
+    brand         TEXT,
+    model         TEXT,
+    serial_number TEXT,
+    is_deleted    BOOLEAN     NOT NULL DEFAULT FALSE,
+    deleted_at    TIMESTAMPTZ,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_devices          PRIMARY KEY (id),
+    CONSTRAINT fk_devices_subjects FOREIGN KEY (subject_id)
+        REFERENCES data_protection.subjects(id) ON DELETE CASCADE
 );
 
 -- =============================================
 -- TABLE: DeviceCredentials
 -- =============================================
-CREATE TABLE IF NOT EXISTS data_protection.DeviceCredentials
+CREATE TABLE IF NOT EXISTS data_protection.device_credentials
 (
-    Id UUID NOT NULL DEFAULT gen_random_uuid(),
-    DeviceId UUID NOT NULL,
-    SystemUser VARCHAR(100),
-    EncryptedPassword BYTEA NOT NULL,
-    EncryptionIV BYTEA NOT NULL,
-    UpdatedAt TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT PK_DeviceCredentials PRIMARY KEY (Id),
-    CONSTRAINT FK_DeviceCredentials_Devices FOREIGN KEY (DeviceId)
-        REFERENCES data_protection.Devices(Id)
-        ON DELETE CASCADE
+    id                 UUID        NOT NULL DEFAULT gen_random_uuid(),
+    device_id          UUID        NOT NULL,
+    system_user_name   TEXT,
+    encrypted_password TEXT        NOT NULL,
+    encryption_iv      TEXT,
+    updated_at         TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_device_credentials           PRIMARY KEY (id),
+    CONSTRAINT fk_device_credentials_devices   FOREIGN KEY (device_id)
+        REFERENCES data_protection.devices(id) ON DELETE CASCADE
 );
 
 -- =============================================
 -- TABLE: BiometricAuth
 -- =============================================
-CREATE TABLE IF NOT EXISTS data_protection.BiometricAuth
+CREATE TABLE IF NOT EXISTS data_protection.biometric_auth
 (
-    Id UUID NOT NULL DEFAULT gen_random_uuid(),
-    SubjectId UUID NOT NULL,
-    TemplateType VARCHAR(20),
-    BiometricVector BYTEA NOT NULL,
-    ConsentText TEXT NOT NULL,
-    DigitalSignature TEXT,
-    CreatedAt TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT PK_BiometricAuth PRIMARY KEY (Id),
-    CONSTRAINT FK_BiometricAuth_Subjects FOREIGN KEY (SubjectId)
-        REFERENCES data_protection.Subjects(Id)
+    id                UUID        NOT NULL DEFAULT gen_random_uuid(),
+    subject_id        UUID        NOT NULL,
+    template_type     VARCHAR(50),
+    biometric_vector  BYTEA       NOT NULL,
+    consent_text      TEXT        NOT NULL,
+    digital_signature TEXT,
+    embedding_model   VARCHAR(50),
+    embedding_dims    INTEGER,
+    confidence_score  FLOAT,
+    is_deleted        BOOLEAN     NOT NULL DEFAULT FALSE,
+    deleted_at        TIMESTAMPTZ,
+    created_at        TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_biometric_auth           PRIMARY KEY (id),
+    CONSTRAINT fk_biometric_auth_subjects  FOREIGN KEY (subject_id)
+        REFERENCES data_protection.subjects(id)
 );
 
 -- =============================================
 -- INDEXES (Opcional pero recomendado)
 -- =============================================
 
-CREATE INDEX IF NOT EXISTS IDX_Devices_SubjectId
-    ON data_protection.Devices (SubjectId);
+CREATE INDEX IF NOT EXISTS idx_devices_subject_id
+    ON data_protection.devices (subject_id);
 
-CREATE INDEX IF NOT EXISTS IDX_DeviceCredentials_DeviceId
-    ON data_protection.DeviceCredentials (DeviceId);
+CREATE INDEX IF NOT EXISTS idx_device_credentials_device_id
+    ON data_protection.device_credentials (device_id);
 
-CREATE INDEX IF NOT EXISTS IDX_BiometricAuth_SubjectId
-    ON data_protection.BiometricAuth (SubjectId);
+CREATE INDEX IF NOT EXISTS idx_biometric_auth_subject_id
+    ON data_protection.biometric_auth (subject_id);
