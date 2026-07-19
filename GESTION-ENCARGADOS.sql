@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS data_protection.part_contracts
     is_deleted          BOOLEAN     NOT NULL DEFAULT FALSE,
     deleted_at          TIMESTAMPTZ,
     created_at          TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	subject_id			UUID
+	subject_id			UUID,
     CONSTRAINT pk_part_contracts PRIMARY KEY (id),
     CONSTRAINT ck_part_status CHECK (status IN ('ACTIVO','SUSPENDIDO','REVOCADO','VENCIDO'))
 );
